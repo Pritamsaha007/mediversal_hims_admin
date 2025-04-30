@@ -13,19 +13,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { Fragment } from "react";
+import { useAuthStore } from "../store/user_details";
 
 interface HeaderProps {
   userName?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ userName = "Monish Ranjan" }) => {
+const Header: React.FC<HeaderProps> = () => {
   const [currentDateTime, setCurrentDateTime] = useState({
     date: "",
     time: "",
   });
   const router = useRouter(); // <-- inside your component
   const pathname = usePathname();
-
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const userName = user?.name.toUpperCase() || "User"; // Default to "User" if name is not available
   const generateBreadcrumbs = () => {
     const pathWithoutQuery = pathname.split("?")[0];
     const pathArray = pathWithoutQuery.split("/").filter((p) => p);
@@ -78,7 +81,10 @@ const Header: React.FC<HeaderProps> = ({ userName = "Monish Ranjan" }) => {
       time: timeStr,
     });
   };
-
+  const handlelogout = () => {
+    logout();
+    router.push("/login");
+  };
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
@@ -157,6 +163,7 @@ const Header: React.FC<HeaderProps> = ({ userName = "Monish Ranjan" }) => {
                     <a
                       href="#"
                       className="px-4 py-2 text-sm hover:bg-gray-100 text-red-500 flex items-center gap-2"
+                      onClick={() => handlelogout()}
                     >
                       <LogOut size={16} />
                       Logout
