@@ -1,24 +1,34 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, ChevronDown, Bell, User } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronDown,
+  Bell,
+  User,
+  Settings,
+  LogOut,
+} from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { Fragment } from "react";
+import { useAuthStore } from "../store/user_details";
 
 interface HeaderProps {
   userName?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ userName = "Monish Ranjan" }) => {
+const Header: React.FC<HeaderProps> = () => {
   const [currentDateTime, setCurrentDateTime] = useState({
     date: "",
     time: "",
   });
   const router = useRouter(); // <-- inside your component
   const pathname = usePathname();
-
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const userName = user?.name.toUpperCase() || "User"; // Default to "User" if name is not available
   const generateBreadcrumbs = () => {
     const pathWithoutQuery = pathname.split("?")[0];
     const pathArray = pathWithoutQuery.split("/").filter((p) => p);
@@ -71,7 +81,10 @@ const Header: React.FC<HeaderProps> = ({ userName = "Monish Ranjan" }) => {
       time: timeStr,
     });
   };
-
+  const handlelogout = () => {
+    logout();
+    router.push("/login");
+  };
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
@@ -113,41 +126,46 @@ const Header: React.FC<HeaderProps> = ({ userName = "Monish Ranjan" }) => {
           {/* User dropdown */}
           <div className="relative">
             <button
-              className="flex items-center space-x-2 bg-[#0088B1] text-white px-4 py-2 rounded"
+              className="flex justify-between items-center space-x-2 bg-[#0088B1] text-white px-2 py-2 rounded gap-3"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              <div className="w-6 h-6 rounded bg-white/20 flex items-center justify-center text-white mr-2">
-                <User size={14} />
+              <div className="flex items-center space-x-2 mr-2 flex-row">
+                <User size={16} />
+                <span className="text-xs">{userName}</span>
               </div>
-              <span>{userName}</span>
+
               <ChevronDown size={16} className="ml-1" />
             </button>
 
             {/* Dropdown menu */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+              <div className="absolute right-0 mt-2 w-40 bg-[#E8F4F7] rounded-md shadow-lg z-10">
                 <ul className="py-1 text-[#161D1F]">
                   <li>
                     <a
                       href="#"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      className="px-4 py-2 text-sm hover:bg-gray-100  flex items-center gap-2"
                     >
+                      <User size={16} />
                       Profile
                     </a>
                   </li>
                   <li>
                     <a
                       href="#"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      className="px-4 py-2 text-sm hover:bg-gray-100  flex items-center gap-2"
                     >
+                      <Settings size={16} />
                       Settings
                     </a>
                   </li>
                   <li>
                     <a
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
-                      onClick={() => router.push("/login")}
+                      href="#"
+                      className="px-4 py-2 text-sm hover:bg-gray-100 text-red-500 flex items-center gap-2"
+                      onClick={() => handlelogout()}
                     >
+                      <LogOut size={16} />
                       Logout
                     </a>
                   </li>
