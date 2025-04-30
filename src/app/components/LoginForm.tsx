@@ -2,8 +2,12 @@
 import React, { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
+import { authService } from "../services/api";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const AdminLoginComponent: React.FC = () => {
+  const router = useRouter();
   const [currentDateTime, setCurrentDateTime] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -38,15 +42,58 @@ const AdminLoginComponent: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate loading for demonstration
-    setTimeout(() => {
+    try {
+      if (!password) {
+        throw new Error("Please enter your password");
+      }
+
+      const response = await authService.login(
+        email + "@mediversal.in",
+        password
+      );
+
+      if (response.data && response.data.token) {
+        localStorage.setItem("auth_token", response.data.token);
+
+        console.log("Login successful:", response.data);
+        toast.success("Login successful!");
+
+        router.push("/dashboard");
+      } else {
+        if (
+          response.data.message ===
+          "Account is locked due to too many failed attempts."
+        ) {
+          toast.error(
+            "Your account is locked. Please contact the administrator."
+          );
+        } else {
+          toast.error(
+            response.data.message || "Login failed. Please try again."
+          );
+        }
+      }
+    } catch (error: unknown) {
+      console.error("Error during login:", error);
+
+      let errorMsg = "Login failed. Please try again.";
+
+      if (typeof error === "object" && error !== null) {
+        const err = error as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
+        errorMsg = err.response?.data?.message || err.message || errorMsg;
+      }
+
+      toast.error(errorMsg);
+    } finally {
       setIsLoading(false);
-      console.log("Login attempt with:", email, password);
-    }, 1000);
+    }
   };
 
   return (

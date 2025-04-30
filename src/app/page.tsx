@@ -1,7 +1,9 @@
+import LoginScreen from "./login/page";
+
 export default function Home() {
   return (
     <>
-      <h1>Helllo</h1>
+      <LoginScreen />
     </>
   );
 }
